@@ -112,6 +112,7 @@ impl Cli {
                     .active_jwt
                     .clone()
                     .expect("Missing active JWT. Set SUPABASE_JWT env var or use --active-jwt");
+                let active_jwt = SecretBox::new(Box::new(active_jwt));
                 let db_connection = sensitive_args.encrypted_connection_string.clone().expect("Missing encrypted connection string. Set PGMETA_CONNECTION_STRING env var or use --encrypted-connection-string");
                 let db_connection = SecretBox::new(Box::new(db_connection));
 
