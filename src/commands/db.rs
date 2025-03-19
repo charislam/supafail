@@ -49,3 +49,24 @@ pub async fn incomplete_anon_key(project_ref: &str, anon_key: &str) -> Result<()
 
     Ok(())
 }
+
+pub async fn throw_timeout(project_ref: &str, anon_key: &str) -> Result<()> {
+    println!("Calling function that will time out (expected: 500 Internal Server Error)");
+    println!("Note: Make sure you've run 'supafail setup create-timeout-function' first");
+
+    let client = reqwest::Client::new();
+    let url = format!(
+        "https://{}.supabase.co/rest/v1/rpc/timeout_function",
+        project_ref
+    );
+
+    let response = client
+        .post(&url)
+        .header("apikey", anon_key)
+        .header("Authorization", format!("Bearer {}", anon_key))
+        .send()
+        .await?;
+    print_response_info(response).await?;
+
+    Ok(())
+}

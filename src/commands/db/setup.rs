@@ -5,7 +5,7 @@ use crate::utils::print_response_info;
 
 pub async fn create_timeout_function(
     project_ref: &str,
-    anon_key: &str,
+    active_jwt: &str,
     conn_string: &SecretBox<String>,
 ) -> Result<()> {
     println!("Creating timeout function in the database...");
@@ -30,7 +30,7 @@ pub async fn create_timeout_function(
 
     let response = client
         .post(&url)
-        .header("Authorization", format!("Bearer {}", anon_key))
+        .header("Authorization", format!("Bearer {}", active_jwt))
         .header("Content-Type", "application/json")
         .header("X-Connection-Encrypted", conn_string.expose_secret())
         .json(&payload)

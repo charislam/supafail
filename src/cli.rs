@@ -54,10 +54,15 @@ pub enum DbCommands {
     /// Make API call with incomplete anon key (401 error)
     #[command(name = "incomplete-anon-key")]
     IncompleteAnonKey,
+    /// Call a function that times out (500 error)
+    #[command(name = "throw-timeout")]
+    ThrowTimeout,
 }
 
 #[derive(Args)]
 pub struct SetupSensitiveArgs {
+    #[arg(long, env = "SUPABASE_JWT", hide_env_values = true)]
+    pub active_jwt: Option<String>,
     /// Database connection string (sensitive)
     #[arg(long, env = "PGMETA_CONNECTION_STRING", hide_env_values = true)]
     pub encrypted_connection_string: Option<String>,
@@ -97,18 +102,27 @@ impl Cli {
                 DbCommands::IncompleteAnonKey => {
                     db::incomplete_anon_key(&project_ref, &anon_key).await
                 }
+                DbCommands::ThrowTimeout => db::throw_timeout(&project_ref, &anon_key).await,
             },
             Commands::Setup {
                 sensitive_args,
                 command,
             } => {
+                let active_jwt = sensitive_args
+                    .active_jwt
+                    .clone()
+                    .expect("Missing active JWT. Set SUPABASE_JWT env var or use --active-jwt");
                 let db_connection = sensitive_args.encrypted_connection_string.clone().expect("Missing encrypted connection string. Set PGMETA_CONNECTION_STRING env var or use --encrypted-connection-string");
                 let db_connection = SecretBox::new(Box::new(db_connection));
 
                 match command {
                     SetupCommands::CreateTimeoutFunction => {
-                        db::setup::create_timeout_function(&project_ref, &anon_key, &db_connection)
-                            .await
+                        db::setup::create_timeout_function(
+                            &project_ref,
+                            &active_jwt,
+                            &db_connection,
+                        )
+                        .await
                     }
                 }
             }
